@@ -4,9 +4,7 @@ import RPi.GPIO as GPIO
 from picamera import PiCamera
 from time import sleep
 import time
-from datetime import date
-from datetime import time
-from datetime import datetime
+import datetime
 camera = PiCamera()
 
 GPIO.setmode(GPIO.BCM)
@@ -25,7 +23,7 @@ s.Set_AxisX_Enabled(True)
 s.Set_AxisY_Enabled(True)
 s.Set_AxisZ_Enabled(True)
 
-sleep(10)
+sleep(5)
 counter = 0
 
 GPIO.output(17,GPIO.HIGH)
@@ -39,9 +37,10 @@ x = 0
 y = 0
 z = 0
 camera.start_preview(fullscreen=False,window=(100,200,300,400))
-camera.start_recording("/home/pi/rocketvids/test.h264")
+camera.start_recording("/home/pi/rocketvids/test"+str(datetime.datetime.now())+".h264")
 filename = "launchdata_"+str(datetime.datetime.now())+".txt"
-while counter < 20:
+file = open(filename, "w+")
+while counter < 600:
         
         sleep(dt)
         dxyz = s.Get_CalOut_Value()
@@ -50,11 +49,16 @@ while counter < 20:
         z += dxyz[2]*dt;
         print("{:7.2f} {:7.2f} {:7.2f}".format(x, y, z))
         myStr = str(x)+", "+str(y)+", "+str(z)+"\n"
-
-        sleep(.5)
+        file.write(myStr)
+        sleep(.1)
         counter = counter + 1
+        if abs(x) > 3:
+                file.write("It flipped!")
+        if abs(y) > 3:
+                file.write("It flipped!")
 camera.stop_recording()
 camera.stop_preview()
+file.close()
 GPIO.output(6,GPIO.LOW)
 GPIO.output(17,GPIO.LOW)
 
